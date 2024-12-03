@@ -1,7 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from deep_translator import GoogleTranslator
+from aksharamukha import transliterate
+from langdetect import detect
+from ai4bharat.transliteration import XlitEngine
+
 
 app = FastAPI()
 
@@ -16,15 +19,22 @@ app.add_middleware(
 class TextRequest(BaseModel):
     text: str
 
+def transliterate_text(text : str) -> str:
+    return transliterate.process("autodetect", "ISO", text)
+
 @app.get('/')
 def homepage():
-    return {"message": "success"}
+    return {'message': 'success'}
 
 @app.post("/transliterate")
 async def transiterated_text(input_text: TextRequest):
     text = input_text.text
-    result = GoogleTranslator(source='auto', target='en').translate(text)
-    return {'transiterated_text':result}
-
+    if detect(text) != 'fa' and detect(text) != 'ur':
+        result = transliterate_text(text)
+        return {'transiterated_text_else':result}
+    else:
+        e = XlitEngine(src_script_type="indic", beam_width=100, rescore=False)
+        result = e.translit_word(text , lang_code="ur", topk=1)
+        return {'transiterated_text_urdu': result}
 
 
