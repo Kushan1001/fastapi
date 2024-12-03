@@ -31,10 +31,10 @@ async def transiterated_text(input_text: TextRequest):
     text = input_text.text
     if detect(text) != 'fa' and detect(text) != 'ur':
         result = transliterate_text(text)
-        return {'transiterated_text_else':result}
+        return {'transiterated_text':result}
     else:
         e = XlitEngine(src_script_type="indic", beam_width=100, rescore=False)
         result = e.translit_word(text , lang_code="ur", topk=1)
-        return {'transiterated_text_urdu': result}
+        return {'transiterated_text': result}
 
 
